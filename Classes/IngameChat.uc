@@ -29,10 +29,10 @@ function NotifyDisconnected();
 
 /**
  * Sends a private message to another user. Delegate to IRCClient.
- * @param string Message
  * @param string Recipient
+ * @param string Message
  */
-function SendPrivateMessage(string Message, string Recipient);
+function SendPrivateMessage(string Recipient, string Message);
 
 /**
  * Notifies the message to the recipient failed.
@@ -43,17 +43,24 @@ function NotifyPrivateMessageFailed(string Recipient, string Reason);
 
 /**
  * Send a Message to a channel. Delegate to IRCClient.
- * @param string Message
  * @param string Channel
+ * @param string Message
  */
-function SendChannelMessage(string Message, string Channel);
+function SendChannelMessage(string Channel, string Message);
 
 /**
  * Send an Action to a channel. Delegate to IRCClient.
- * @param string Action
  * @param string Channel
+ * @param string Action
  */
-function SendChannelAction(string Action, string Channel);
+function SendChannelAction(string Channel, string Action);
+
+/**
+ * Send an action to a recipient. Delegate to IRCClient.
+ * @param string Recipient
+ * @param string Action
+ */
+function SendPrivateAction(string Recipient, string Action);
 
 /**
  * Notifes the channel message failed.
@@ -72,8 +79,9 @@ function JoinChannel(string Channel, optional string Password);
 /**
  * Attempt to leave a channel. Delegate to IRCClient.
  * @param string Channel
+ * @param string Message
  */
-function LeaveChannel(string Channel);
+function LeaveChannel(string Channel, optional string Message);
 
 /**
  * Confirms the channel has been left.
@@ -150,6 +158,15 @@ function DeclineChangedNickname(string Reason);
 function NotifyChangedNickname(string Nickname);
 
 /**
+ * Change the user mode on the channel.
+ * @param string Channel
+ * @param string User
+ * @param string Mode
+ * @param string Modifier
+ */
+function ChangeUserModeOnChannel(string Channel, string User, string Modifier, string Mode);
+
+/**
  * Notifies when a mode of a user has changed in a channel.
  * @param string Channel
  * @param string AffectedUser
@@ -157,7 +174,7 @@ function NotifyChangedNickname(string Nickname);
  * @param string Mode
  * @param string Modifier
  */
-function NotifyChannelModeChangeOnUser(string Channel, string AffectedUser, string InitiatingUser, string Mode, string Modifier);
+function NotifyChannelModeChangeOnUser(string Channel, string AffectedUser, string InitiatingUser, string Modifier, string Mode);
 
 /**
  * Notifies when a user left the given channel.
@@ -180,3 +197,23 @@ function NotifyUserEnteredChannel(string Channel, string User);
  * @param string Reason
  */
 function NotifyUserKickedFromChannel(string Channel, string User, string Reason);
+
+/**
+ * Change the mode on the channel. Example +k password
+ * @param string Channel
+ * @param string Mode
+ * @param string Modifier
+ * @param string Parameter
+ */
+function ChangeChannelMode(string Channel, string Modifier, string Mode, string Parameter);
+
+/**
+ * Notifies when a mode has changed in a channel.
+ * @param string Channel
+ * @param string InitiatingUser
+ * @param string Mode
+ * @param string Modifier
+ * @param string Parameter optional
+ */
+function NotifyChannelModeChange(string Channel, string InitiatingUser, string Modifier, string Mode, optional string parameter);
+

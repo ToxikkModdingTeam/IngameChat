@@ -62,6 +62,16 @@ function SendChannelAction(string Action, string Channel)
 }
 
 /**
+ * Send an action to a recipient. Delegate to IRCClient.
+ * @param string Action
+ * @param string Recipient
+ */
+function SendPrivateAction(string Action, string Recipient)
+{
+	`Log("IngameChat: Sending Action " @ Action @ "to user" @ Recipient);	
+}
+
+/**
  * Attempt to join a channel.
  */
 function JoinChannel(string Channel, optional string Password)
@@ -72,9 +82,9 @@ function JoinChannel(string Channel, optional string Password)
 /**
  * Attempt to leave a channel.
  */
-function LeaveChannel(string Channel)
+function LeaveChannel(string Channel, optional string Message)
 {
-	`Log("IngameChat: Leaving" @ Channel);
+	`Log("IngameChat: Leaving" @ Channel @ Message);
 }
 
 /**
@@ -182,7 +192,7 @@ function NotifyChangedNickname(string Nickname)
  * Notifies when a mode of a user has changed in a channel.
  * @todo split into multiple functions?
  */
-function NotifyChannelModeChangeOnUser(string Channel, string AffectedUser, string InitiatingUser, string Mode, string Modifier)
+function NotifyChannelModeChangeOnUser(string Channel, string AffectedUser, string InitiatingUser, string Modifier, string Mode)
 {
 	`Log("IngameChat:" @ InitiatingUser @ "changing mode on user" @ AffectedUser @ "in channel" @ Channel @ "to" @ Modifier $ Mode);
 }
@@ -236,6 +246,44 @@ function NotifyJoiningChannelFailed(string Channel, string Reason)
 {
 	`Log("IngameChat: Joining" @ Channel @ "failed:" @ Reason);
 }
+
+/**
+ * Change the mode on the channel. Example +k password
+ * @param string Channel
+ * @param string Modifier
+ * @param string Mode
+ * @param string Parameter
+ */
+function ChangeChannelMode(string Channel, string Modifier, string Mode, optional string Parameter)
+{
+	`Log("IngameChat: Changing mode in channel" @ Channel @ "to"  @ Modifier $ Mode @ Parameter);
+}
+
+/**
+ * Notifies when a mode has changed in a channel.
+ * @param string Channel
+ * @param string InitiatingUser
+ * @param string Modifier
+ * @param string Mode
+ * @param string Parameter
+ */
+function NotifyChannelModeChange(string Channel, string InitiatingUser, string Modifier, string Mode, optional string Parameter)
+{
+	`Log("IngameChat:" @ InitiatingUser @ "changing mode in channel" @ Channel @ "to" @ Modifier $ Mode @ Parameter);
+}
+
+/**
+ * Change the user mode on the channel.
+ * @param string Channel
+ * @param string User
+ * @param string Mode
+ * @param string Modifier
+ */
+function ChangeUserModeOnChannel(string Channel, string User, string Modifier, string Mode)
+{
+	`Log("IngameChat: Changing mode on user" @ User @ "in channel" @ Channel @ "to" @ Modifier $ Mode);
+}
+
 
 defaultproperties
 {

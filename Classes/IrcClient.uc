@@ -151,12 +151,22 @@ function SendChannelAction(string Channel, string Text)
 	`Log("Send channel action ignored, not connected yet.");
 }
 
+/**
+ * Sends the Action into the given Recipient.
+ * @param string Recipient
+ * @param string Action
+ */
+function SendPrivateAction(string Recipient, string Action)
+{
+	`Log("Send private action ignored, not connected yet.");
+}
+
 function JoinChannel(string Channel, optional string Password)
 {
 	`Log("Joining channel ignored, not connected yet");
 }	
 
-function LeaveChannel(string Channel)
+function LeaveChannel(string Channel, optional string Message)
 {
 	`Log("Leaving channel ignored, not connected yet");
 }
@@ -164,6 +174,18 @@ function LeaveChannel(string Channel)
 function Disconnect(string Reason)
 {
 	`Log("Quitting ignored, not connected yet");
+}
+
+/**
+ * Change the mode on the channel. Example +k password
+ * @param string Channel
+ * @param string Mode
+ * @param string Modifier
+ * @param string Parameter
+ */
+function ChangeChannelMode(string Channel, string Modifier, string Mode, optional string Parameter)
+{
+	`Log("Changing Channel mode ignored, not connected yet.");
 }
 
 /**
@@ -280,18 +302,120 @@ state ConnectedWithChat
 	 */
 	function SendPrivateMessage(string Recipient, string Message)
 	{
-		SendBufferedData("PRIVMSG " $ Recipient $ " :" $ Message $ CRLF);
+		if (!IsMessageCommandThenDelegate(Message))
+		{
+			SendBufferedData("PRIVMSG " $ Recipient $ " :" $ Message $ CRLF);	
+		}
 	}
 
 	/**
 	 * Sends the Message into the given Channel.
 	 * @param string Channel
 	 * @param string Message
-	 * @todo Recognize commands like /join
 	 */
 	function SendChannelMessage(string Channel, string Message)
 	{
-		SendBufferedData("PRIVMSG " $ Channel $ " :" $ Message $ CRLF);
+		if (!IsMessageCommandThenDelegate(Message, Channel))
+		{	
+			// let's join it before be message to it
+			if (Channels.Find(Channel) == -1)
+			{
+				JoinChannel(Channel);
+			}
+			SendBufferedData("PRIVMSG " $ Channel $ " :" $ Message $ CRLF);
+		}
+	}
+
+	/**
+	 * Returns true if the message is a command.
+	 */
+	function bool IsMessageCommandThenDelegate(string Message, optional string Channel, optional string Recipient)
+	{
+		local string PossibleCommand;
+		local array<string> SplitRequest;
+		local bool bCommandFound;
+
+		bCommandFound = false;
+		if (Left(Message, 1) == "/") 
+		{
+			// remove slash and split
+			Message = Mid(Message, 1);
+			ParseStringIntoArray(Message, SplitRequest, " ", true);		
+			PossibleCommand = Locs(SplitRequest[0]);
+
+			switch(PossibleCommand) 
+		 	{
+		 		case "join": // we seem to wanna join a channel: join #channel password
+		 			if (SplitRequest.Length > 1 && len(SplitRequest[1]) > 0) 
+		 			{
+		 				if (SplitRequest.Length > 2 && len(SplitRequest[2]) > 0) // we seem to have a password added
+		 				{
+		 					JoinChannel(SplitRequest[1], SplitRequest[2]);
+		 				}
+		 				else
+		 				{
+		 					JoinChannel(SplitRequest[1]);
+		 				}
+		 				bCommandFound = true;
+		 			}
+		 			break;
+	 			case "part": 
+	 				if (SplitRequest.Length == 1 && len(Channel) > 0) // we leave the channel we are in
+	 				{
+	 					LeaveChannel(Channel);
+	 					bCommandFound = true;
+	 				}
+	 				else if (SplitRequest.Length > 1 && len(SplitRequest[1]) > 0)
+	 				{
+		 				if (SplitRequest.Length > 2 && len(SplitRequest[2]) > 0) // we seem try to leave a message
+		 				{
+		 					LeaveChannel(SplitRequest[1], SplitRequest[2]);
+		 				}
+		 				else
+		 				{
+		 					LeaveChannel(SplitRequest[1]);
+		 				}
+		 				bCommandFound = true;
+	 				}
+	 				break;
+	 			case "msg":
+	 			case "privmsg": // we need a channel or a user and a message
+	 				if (SplitRequest.Length > 2)
+	 				{
+	 					if (Left(SplitRequest[1], 1) == "#")
+	 					{
+	 						// make sure we are already in that channel since most networks don't allow external messages
+	 						if (Channels.Find(SplitRequest[1]) == -1)
+	 						{
+	 							JoinChannel(SplitRequest[1]);
+	 						}
+	 						SendChannelMessage(SplitRequest[1], SplitRequest[2]);
+	 					}
+	 					else 
+	 					{
+	 						SendPrivateMessage(SplitRequest[1], SplitRequest[2]);
+	 					}
+	 					bCommandFound = true;
+	 				}
+	 				break;
+	 			case "amsg": // send to all channels we are in
+	 				break;	
+	 			case "me":
+	 				if (len(Channel) > 0) 
+	 				{
+	 					SendChannelAction(Channel, ConcatFromIndexTillRestOfArray(SplitRequest, 1));
+	 					bCommandFound = true;
+	 				}
+	 				else if (len(Recipient) > 0)
+	 				{
+	 					SendPrivateAction(Recipient, ConcatFromIndexTillRestOfArray(SplitRequest, 1));
+	 					bCommandFound = true;
+	 				}	
+	 				break;
+		 	}		
+		}
+
+		return bCommandFound;
 	}
 
 	/**
@@ -303,6 +427,16 @@ state ConnectedWithChat
 	{
 		SendChannelMessage(Channel, Chr(1) $ "ACTION" @ Action $ Chr(1));
 	}
+
+	/**
+	 * Sends the Action into the given Recipient.
+	 * @param string Recipient
+	 * @param string Action
+	 */
+	function SendPrivateAction(string Recipient, string Action)
+	{
+		SendPrivateMessage(Recipient, Chr(1) $ "ACTION" @ Action $ Chr(1));
+	}	
 
 	/**
 	 * Join the channel.
@@ -326,11 +460,20 @@ state ConnectedWithChat
 	/**
 	 * Leave the channel.
 	 * @param string Channel
+	 * @param string Message optional
 	 */
-	function LeaveChannel(string Channel)
+	function LeaveChannel(string Channel, optional string Message)
 	{
+		local string LeaveString;
 		PrependHash(Channel);
-		SendBufferedData("PART " $ Channel $ CRLF);
+
+		LeaveString = "PART " $ Channel;
+		if (len(Message) > 0)
+		{
+			LeaveString @= Message;
+		}
+
+		SendBufferedData(LeaveString $ CRLF);
 	}
 
 	/**
@@ -387,7 +530,7 @@ state ConnectedWithChat
 		 			Chat.ReceiveInvite(SplitResponse[3]); // 2 contains our own name
 		 			break;
 				case "MODE":
-					DelegateModeChangeOnUser(SplitResponse);
+					DelegateModeChangeOnChannel(SplitResponse);	
 					break;
 		 		case "353": // list of users
 		 			DelegateUserList(SplitResponse);
@@ -418,10 +561,10 @@ state ConnectedWithChat
 	}	
 
 	/**
-	 * Delegate mode changes.
+	 * Delegate mode changes. This is very limited, since in the end we need to rely on the server.
 	 * @param array<string> SplitResponse
 	 */
-	function DelegateModeChangeOnUser(array<string> SplitResponse)
+	function DelegateModeChangeOnChannel(array<string> SplitResponse)
 	{
 		local string Channel, InitiatingUser, Mode, Modifier;
 		local int i;
@@ -430,9 +573,25 @@ state ConnectedWithChat
 		Channel = SplitResponse[2];
 		Modifier = Left(SplitResponse[3], 1);
 		Mode = Mid(SplitResponse[3], 1, 1);
-		for (i = 4; i < SplitResponse.Length; i++)
+
+		if (InStr("bhov", Mode) != -1) // ban, halfop, operator, voice
 		{
-			Chat.NotifyChannelModeChangeOnUser(Channel, SplitResponse[i], InitiatingUser, Mode, Modifier);
+			for (i = 4; i < SplitResponse.Length; i++)
+			{
+				Chat.NotifyChannelModeChangeOnUser(Channel, SplitResponse[i], InitiatingUser, Modifier, Mode);
+			}
+		}
+		else 
+		{
+			if (SplitResponse.Length > 4 && len(SplitResponse[4]) > 0 )
+			{
+				Chat.NotifyChannelModeChange(Channel, InitiatingUser, Modifier, Mode, SplitResponse[4]);	
+			}
+			else 
+			{
+				Chat.NotifyChannelModeChange(Channel, InitiatingUser, Modifier, Mode);
+			}
+			
 		}
 	}
 
@@ -498,6 +657,7 @@ state ConnectedWithChat
 	/**
 	 * Extracts the authors nickname.
 	 * @param string FullAuthor
+	 * @return string
 	 */ 
 	function string ExtractAuthorNickName(string FullAuthor)
 	{
@@ -524,7 +684,7 @@ state ConnectedWithChat
 
 		Author = ExtractAuthorNickName(SplitResponse[0]);
 		Message = ConcatFromIndexTillRestOfArray(SplitResponse, 3);
-		if (SplitResponse[2] == NickName) 		// it is private
+		if (SplitResponse[2] == NickName) // it is private
 		{
 			Chat.ReceivePrivateMessage(Message, Author);
 		} 
@@ -544,10 +704,40 @@ state ConnectedWithChat
 		local string Channel;
 		local string Topic;
 
-		`Log("Deligating topic");
 		Channel = SplitResponse[2];
 		Topic = ConcatFromIndexTillRestOfArray(SplitResponse, 3);
 		Chat.ReceiveChannelTopic(Channel, Topic);
+	}
+
+	/**
+	 * Change the user mode on the channel.
+	 * @param string Channel
+	 * @param string User
+	 * @param string Mode
+	 * @param string Modifier
+	 */
+	function ChangeUserModeOnChannel(string Channel, string User, string Modifier, string Mode)
+	{
+		ChangeChannelMode(Channel, Modifier, Mode, User);
+	}
+
+	/**
+	 * Change the mode on the channel. Example +k password
+	 * @param string Channel
+	 * @param string Mode
+	 * @param string Modifier
+	 * @param string Parameter
+	 */
+	function ChangeChannelMode(string Channel, string Modifier, string Mode, optional string Parameter)
+	{
+		local string ModeString;
+
+		ModeString = "MODE" @ Channel @ Modifier $ Mode;
+		if (len(Parameter) > 0)
+		{
+			ModeString @= Parameter;
+		}
+		SendBufferedData(ModeString);
 	}
 }
 
@@ -555,6 +745,7 @@ state ConnectedWithChat
  * Concatenates the array from the given index till the end of the array.
  * @param array<string> StringArray
  * @param int Index
+ * @return string
  */
 function string ConcatFromIndexTillRestOfArray(array<string> StringArray, int Index)
 {
@@ -617,7 +808,6 @@ function LogIn()
 	local string LoginLine;
 
 	LoginLine = "USER " $ UserIdent $ " localhost " $ IpAddrToString(ServerAddress) $ " :" $ FullName $ CRLF;
-	`Log(LoginLine);
 	SendBufferedData(LoginLine);
 }
 
