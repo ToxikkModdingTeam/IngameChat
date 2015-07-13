@@ -151,7 +151,7 @@ function SendChannelAction(string Channel, string Text)
 	`Log("Send channel action ignored, not connected yet.");
 }
 
-function JoinChannel(string Channel)
+function JoinChannel(string Channel, optional string Password)
 {
 	`Log("Joining channel ignored, not connected yet");
 }	
@@ -308,10 +308,19 @@ state ConnectedWithChat
 	 * Join the channel.
 	 * @param string Channel
 	 */
-	function JoinChannel(string Channel)
+	function JoinChannel(string Channel, optional string Password)
 	{
+		local string JoinString;
+
 		PrependHash(Channel);
-		SendBufferedData("JOIN " $ Channel $ CRLF);
+
+		JoinString = "JOIN " $ Channel;
+		if (len(Password) > 0)
+		{
+			JoinString @= Password;
+		}
+
+		SendBufferedData(JoinString $ CRLF);
 	}
 
 	/**

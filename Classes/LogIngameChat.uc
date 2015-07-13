@@ -66,7 +66,7 @@ function SendChannelAction(string Action, string Channel)
  */
 function JoinChannel(string Channel, optional string Password)
 {
-	`Log("IngameChat: Joining" @ Channel);
+	`Log("IngameChat: Joining" @ Channel @ Password);
 }
 
 /**
