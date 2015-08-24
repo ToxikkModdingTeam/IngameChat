@@ -175,7 +175,7 @@ function ReceiveInvite(string Channel)
 /**
  * Attempts to change the nickname.
  */
-function ChangeNickame(string NewNickName)
+function SetNickame(string NewNickName)
 {
 	`Log("IngameChat: Changing nickname to" @ NewNickName);
 }
