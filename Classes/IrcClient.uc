@@ -412,7 +412,10 @@ state ConnectedWithChat
 	 					bCommandFound = true;
 	 				}	
 	 				break;
-		 	}		
+	 			case "nick":
+					ChangeNick(SplitRequest[1]);
+					break;
+		 	}
 		}
 
 		return bCommandFound;
@@ -482,6 +485,15 @@ state ConnectedWithChat
 	function Disconnect(string Reason)
 	{
 		SendText("QUIT :" $ Reason $ CRLF);
+	}
+
+	/**
+	 * Changes nick
+	 * @param string NewNick
+	 */
+	function ChangeNick(string NewNick)
+	{
+		SendBufferedData("NICK " $ NewNick $ CRLF);
 	}
 
 	/**
