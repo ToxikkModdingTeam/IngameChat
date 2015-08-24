@@ -1,3 +1,4 @@
+
 class LogIngameChat extends Actor implements (IngameChat);
 
 var IrcClient Client;
@@ -175,7 +176,7 @@ function ReceiveInvite(string Channel)
 /**
  * Attempts to change the nickname.
  */
-function ChangeNickame(string NewNickName)
+function SetNickName(string NewNickName)
 {
 	`Log("IngameChat: Changing nickname to" @ NewNickName);
 }
@@ -295,5 +296,4 @@ function ChangeUserModeOnChannel(string Channel, string User, string Modifier, s
 
 defaultproperties
 {
-	
 }

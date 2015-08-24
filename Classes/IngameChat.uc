@@ -150,7 +150,7 @@ function ReceiveInvite(string Channel);
  * Attempts to change the nickname.
  * @param string NewNickName
  */
-function ChangeNickame(string NewNickName);
+function SetNickName(string NewNickName);
 
 /**
  * Nickname could not be changed.
