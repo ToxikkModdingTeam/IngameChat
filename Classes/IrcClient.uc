@@ -783,18 +783,18 @@ state ConnectedWithChat
 static function string ConcatFromIndexTillRestOfArray(out array<string> StringArray, int Index, optional bool bTrimColon=false)
 {
 	local string ConcatString;
-	local int i, j;
+	local int i;
 
-	for (i = Index; i < StringArray.Length; i++)
+	if ( Index < StringArray.Length )
 	{
-		ConcatString = ConcatString @ StringArray[i];
+		if ( bTrimColon )
+			ConcatString = Mid(StringArray[Index], 1);
+		else
+			ConcatString = StringArray[Index];
 
-		if ( i == Index && bTrimColon )
+		for ( i=Index+1; i<StringArray.Length; i++ )
 		{
-			// colon can be first character or after a few spaces...
-			j = InStr(ConcatString, ":");
-			if ( j != -1 )
-				ConcatString = Mid(ConcatString, j+1);
+			ConcatString @= StringArray[i];
 		}
 	}
 
