@@ -157,6 +157,22 @@ function ReceivePrivateMessage(string Message, string Author)
 }
 
 /**
+ * Receive a notice in a channel.
+ */
+function ReceiveChannelNotice(string Channel, string Message, string Author)
+{
+	`Log("IngameChat: Notice" @ Message @ "in channel" @ Channel @ "from" @ Author);
+}
+
+/**
+ * Receive a private notice.
+ */
+function ReceivePrivateNotice(string Message, string Author)
+{
+	`Log("[IRCPugBot] Private Notice" @ Message @ "from" @ Author);
+}
+
+/**
  * Receives an invitation to a channel promt the user.
  */
 function ReceiveInvite(string Channel)

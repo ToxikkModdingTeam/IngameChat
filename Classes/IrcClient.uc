@@ -564,6 +564,9 @@ state ConnectedWithChat
 				case "477": // we need to register
 					Chat.NotifyJoiningChannelFailed(SplitResponse[3], Mid(SplitResponse[4], 1) $ ConcatFromIndexTillRestOfArray(SplitResponse, 4));
 					break;
+				case "NOTICE":  // we received a notice (private channel messages sent by Q bot)
+					DelegateNotice(SplitResponse);
+					break;
 		 	}
 		} 
 		else 
@@ -704,6 +707,29 @@ state ConnectedWithChat
 		{
 			Channel = SplitResponse[2];
 			Chat.ReceiveChannelMessage(Channel, Message, Author);
+		}
+	}
+
+	/**
+	 * Delegates the notice message to the ingame chat.
+	 * @param array<string> SplitResponse
+	 */
+	function DelegateNotice(array<string> SplitResponse)
+	{
+		local string Message;
+		local string Author;
+		local string Channel;
+
+		Author = ExtractAuthorNickName(SplitResponse[0]);
+		Message = ConcatFromIndexTillRestOfArray(SplitResponse, 3);
+		Channel = SplitResponse[2];
+		if ( Channel == NickName ) // private
+		{
+			Chat.ReceivePrivateNotice(Message, Author);
+		}
+		else
+		{
+			Chat.ReceiveChannelNotice(Channel, Message, Author);
 		}
 	}
 
