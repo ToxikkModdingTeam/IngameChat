@@ -790,7 +790,9 @@ function string ConcatFromIndexTillRestOfArray(array<string> StringArray, int In
 	local string ConcatString;
 	local int i;
 
-	ConcatString = Mid(StringArray[Index], 1);
+	//???
+	//ConcatString = Mid(StringArray[Index], 1);
+
 	if (StringArray.Length > Index + 1)
 	{
 		for (i = Index + 1; i < StringArray.Length; i++)
