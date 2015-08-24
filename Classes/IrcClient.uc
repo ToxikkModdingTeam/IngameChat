@@ -415,6 +415,8 @@ state ConnectedWithChat
 	 			case "nick":
 					ChangeNick(SplitRequest[1]);
 					break;
+				case "notice":
+
 		 	}
 		}
 
@@ -548,13 +550,13 @@ state ConnectedWithChat
 		 			DelegateUserList(SplitResponse);
 		 			break;
 		 		case "401": // sending failed, user not found
-					Chat.NotifyPrivateMessageFailed(SplitResponse[3], Mid(SplitResponse[4], 1) $ ConcatFromIndexTillRestOfArray(SplitResponse, 4));
+					Chat.NotifyPrivateMessageFailed(SplitResponse[3], Mid(SplitResponse[4], 1) $ ConcatFromIndexTillRestOfArray(SplitResponse, 4, true));
 					break;
 				case "403": // sending to channel failed, channel not found
-					Chat.NotifyChannelMessageFailed(SplitResponse[3], Mid(SplitResponse[4], 1) $ ConcatFromIndexTillRestOfArray(SplitResponse, 4)); 
+					Chat.NotifyChannelMessageFailed(SplitResponse[3], Mid(SplitResponse[4], 1) $ ConcatFromIndexTillRestOfArray(SplitResponse, 4, true)); 
 					break;
 				case "404": // sending to channel failed, forbidden
-					Chat.NotifyChannelMessageFailed(SplitResponse[3], Mid(SplitResponse[4], 1) $ ConcatFromIndexTillRestOfArray(SplitResponse, 4));
+					Chat.NotifyChannelMessageFailed(SplitResponse[3], Mid(SplitResponse[4], 1) $ ConcatFromIndexTillRestOfArray(SplitResponse, 4, true));
 					break;
 				case "405": // we already joined too many channels
 				case "471": // channel is at limit
@@ -562,10 +564,10 @@ state ConnectedWithChat
 				case "474": // we are banned
 				case "475": // we don't have the password
 				case "477": // we need to register
-					Chat.NotifyJoiningChannelFailed(SplitResponse[3], Mid(SplitResponse[4], 1) $ ConcatFromIndexTillRestOfArray(SplitResponse, 4));
+					Chat.NotifyJoiningChannelFailed(SplitResponse[3], Mid(SplitResponse[4], 1) $ ConcatFromIndexTillRestOfArray(SplitResponse, 4, true));
 					break;
 				case "NOTICE":  // we received a notice (private channel messages sent by Q bot)
-					DelegateNotice(SplitResponse);
+					Chat.ReceiveNotice(ConcatFromIndexTillRestOfArray(SplitResponse, 3, true), ExtractAuthorNickName(SplitResponse[0]));
 					break;
 		 	}
 		} 
@@ -573,7 +575,7 @@ state ConnectedWithChat
 		{
 			global.ProcessInput(Line);
 		}
-	}	
+	}
 
 	/**
 	 * Delegate mode changes. This is very limited, since in the end we need to rely on the server.
@@ -698,7 +700,7 @@ state ConnectedWithChat
 		local string Channel;
 
 		Author = ExtractAuthorNickName(SplitResponse[0]);
-		Message = ConcatFromIndexTillRestOfArray(SplitResponse, 3);
+		Message = ConcatFromIndexTillRestOfArray(SplitResponse, 3, true);
 		if (SplitResponse[2] == NickName) // it is private
 		{
 			Chat.ReceivePrivateMessage(Message, Author);
@@ -707,29 +709,6 @@ state ConnectedWithChat
 		{
 			Channel = SplitResponse[2];
 			Chat.ReceiveChannelMessage(Channel, Message, Author);
-		}
-	}
-
-	/**
-	 * Delegates the notice message to the ingame chat.
-	 * @param array<string> SplitResponse
-	 */
-	function DelegateNotice(array<string> SplitResponse)
-	{
-		local string Message;
-		local string Author;
-		local string Channel;
-
-		Author = ExtractAuthorNickName(SplitResponse[0]);
-		Message = ConcatFromIndexTillRestOfArray(SplitResponse, 3);
-		Channel = SplitResponse[2];
-		if ( Channel == NickName ) // private
-		{
-			Chat.ReceivePrivateNotice(Message, Author);
-		}
-		else
-		{
-			Chat.ReceiveChannelNotice(Channel, Message, Author);
 		}
 	}
 
@@ -743,7 +722,7 @@ state ConnectedWithChat
 		local string Topic;
 
 		Channel = SplitResponse[2];
-		Topic = ConcatFromIndexTillRestOfArray(SplitResponse, 3);
+		Topic = ConcatFromIndexTillRestOfArray(SplitResponse, 3, true);
 		Chat.ReceiveChannelTopic(Channel, Topic);
 	}
 
@@ -783,21 +762,24 @@ state ConnectedWithChat
  * Concatenates the array from the given index till the end of the array.
  * @param array<string> StringArray
  * @param int Index
+ * @param optional bool bTrimColon=false
  * @return string
  */
-function string ConcatFromIndexTillRestOfArray(array<string> StringArray, int Index)
+static function string ConcatFromIndexTillRestOfArray(out array<string> StringArray, int Index, optional bool bTrimColon=false)
 {
 	local string ConcatString;
-	local int i;
+	local int i, j;
 
-	//???
-	//ConcatString = Mid(StringArray[Index], 1);
-
-	if (StringArray.Length > Index + 1)
+	for (i = Index; i < StringArray.Length; i++)
 	{
-		for (i = Index + 1; i < StringArray.Length; i++)
+		ConcatString = ConcatString @ StringArray[i];
+
+		if ( i == Index && bTrimColon )
 		{
-			ConcatString = ConcatString @ StringArray[i];
+			// colon can be first character or after a few spaces...
+			j = InStr(ConcatString, ":");
+			if ( j != -1 )
+				ConcatString = Mid(ConcatString, j+1);
 		}
 	}
 

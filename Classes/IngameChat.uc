@@ -134,19 +134,11 @@ function ReceiveChannelMessage(string Channel, string Message, string Author);
 function ReceivePrivateMessage(string Message, string Author);
 
 /**
- * Receive a notice in a channel.
- * @param string Channel
+ * Receive a notice.
  * @param string Message
  * @param string Author
  */
-function ReceiveChannelNotice(string Channel, string Message, string Author);
-
-/**
- * Receive a private notice.
- * @param string Message
- * @param string Author
- */
-function ReceivePrivateNotice(string Message, string Author);
+function ReceiveNotice(string Message, string Author);
 
 /**
  * Receives an invitation to a channel promt the user.
