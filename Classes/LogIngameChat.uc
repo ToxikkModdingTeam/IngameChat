@@ -161,7 +161,7 @@ function ReceivePrivateMessage(string Message, string Author)
  */
 function ReceiveNotice(string Message, string Author)
 {
-	`Log("[IRCPugBot] Notice" @ Message @ "from" @ Author);
+	`Log("IngameChat: Notice" @ Message @ "from" @ Author);
 }
 
 /**
