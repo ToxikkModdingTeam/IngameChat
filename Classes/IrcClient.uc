@@ -327,6 +327,16 @@ state ConnectedWithChat
 	}
 
 	/**
+	 * Sends the Notice Message to specified Target.
+	 * @param string Target
+	 * @param string Message
+	 */
+	function SendNotice(string Target, string Message)
+	{
+		SendBufferedData("NOTICE " $ Target $ " :" $ Message $ CRLF);
+	}
+
+	/**
 	 * Returns true if the message is a command.
 	 */
 	function bool IsMessageCommandThenDelegate(string Message, optional string Channel, optional string Recipient)
@@ -416,7 +426,12 @@ state ConnectedWithChat
 					ChangeNick(SplitRequest[1]);
 					break;
 				case "notice":
-
+					if ( SplitRequest.Length > 2 )
+					{
+						SendNotice(SplitRequest[1], ConcatFromIndexTillRestOfArray(SplitRequest, 2));
+						bCommandFound = true;
+					}
+					break;
 		 	}
 		}
 
@@ -441,7 +456,7 @@ state ConnectedWithChat
 	function SendPrivateAction(string Recipient, string Action)
 	{
 		SendPrivateMessage(Recipient, Chr(1) $ "ACTION" @ Action $ Chr(1));
-	}	
+	}
 
 	/**
 	 * Join the channel.
