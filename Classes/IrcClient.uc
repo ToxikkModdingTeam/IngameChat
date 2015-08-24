@@ -423,7 +423,8 @@ state ConnectedWithChat
 	 				}	
 	 				break;
 	 			case "nick":
-					ChangeNick(SplitRequest[1]);
+					SetNickName(SplitRequest[1]);  // make sure we filter the nickname
+					SendSetNickName();
 					break;
 				case "notice":
 					if ( SplitRequest.Length > 2 )
@@ -502,15 +503,6 @@ state ConnectedWithChat
 	function Disconnect(string Reason)
 	{
 		SendText("QUIT :" $ Reason $ CRLF);
-	}
-
-	/**
-	 * Changes nick
-	 * @param string NewNick
-	 */
-	function ChangeNick(string NewNick)
-	{
-		SendBufferedData("NICK " $ NewNick $ CRLF);
 	}
 
 	/**
