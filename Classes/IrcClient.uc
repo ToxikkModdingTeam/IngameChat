@@ -369,7 +369,7 @@ state ConnectedWithChat
 	 				{
 		 				if (SplitRequest.Length > 2 && len(SplitRequest[2]) > 0) // we seem try to leave a message
 		 				{
-		 					LeaveChannel(SplitRequest[1], SplitRequest[2]);
+		 					LeaveChannel(SplitRequest[1], ConcatFromIndexTillRestOfArray(SplitRequest, 2));
 		 				}
 		 				else
 		 				{
@@ -389,11 +389,11 @@ state ConnectedWithChat
 	 						{
 	 							JoinChannel(SplitRequest[1]);
 	 						}
-	 						SendChannelMessage(SplitRequest[1], SplitRequest[2]);
+	 						SendChannelMessage(SplitRequest[1], ConcatFromIndexTillRestOfArray(SplitRequest, 2));
 	 					}
 	 					else 
 	 					{
-	 						SendPrivateMessage(SplitRequest[1], SplitRequest[2]);
+	 						SendPrivateMessage(SplitRequest[1], ConcatFromIndexTillRestOfArray(SplitRequest, 2));
 	 					}
 	 					bCommandFound = true;
 	 				}
