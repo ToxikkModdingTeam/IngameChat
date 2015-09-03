@@ -151,6 +151,16 @@ function SendChannelAction(string Channel, string Text)
 	`Log("Send channel action ignored, not connected yet.");
 }
 
+function SendNotice(string Target, string Message)
+{
+	`Log("Send notice ignored, not connected yet.");
+}
+
+function SendTopic(string Channel, optional string Topic="?")
+{
+	`Log("Send channel topic ignored, not connected yet.");
+}
+
 /**
  * Sends the Action into the given Recipient.
  * @param string Recipient
@@ -337,6 +347,20 @@ state ConnectedWithChat
 	}
 
 	/**
+	 * Sends the Topic command, used to change or view the topic of a channel.
+	 * Do not specify topic or use "?" to view. Use empty topic to clear.
+	 * @param string Channel
+	 * @param optional string Topic="?"
+	 */
+	function SendTopic(string Channel, optional string Topic="?")
+	{
+		if ( Topic == "?" )
+			SendBufferedData("TOPIC " $ Channel $ CRLF);
+		else
+			SendBufferedData("TOPIC " $ Channel $ " :" $ Topic $ CRLF);
+	}
+
+	/**
 	 * Returns true if the message is a command.
 	 */
 	function bool IsMessageCommandThenDelegate(string Message, optional string Channel, optional string Recipient)
@@ -369,6 +393,7 @@ state ConnectedWithChat
 		 				bCommandFound = true;
 		 			}
 		 			break;
+
 	 			case "part": 
 	 				if (SplitRequest.Length == 1 && len(Channel) > 0) // we leave the channel we are in
 	 				{
@@ -388,6 +413,7 @@ state ConnectedWithChat
 		 				bCommandFound = true;
 	 				}
 	 				break;
+
 	 			case "msg":
 	 			case "privmsg": // we need a channel or a user and a message
 	 				if (SplitRequest.Length > 2)
@@ -408,8 +434,10 @@ state ConnectedWithChat
 	 					bCommandFound = true;
 	 				}
 	 				break;
+
 	 			case "amsg": // send to all channels we are in
-	 				break;	
+	 				break;
+
 	 			case "me":
 	 				if (len(Channel) > 0) 
 	 				{
@@ -422,14 +450,26 @@ state ConnectedWithChat
 	 					bCommandFound = true;
 	 				}	
 	 				break;
+
 	 			case "nick":
 					SetNickName(SplitRequest[1]);  // make sure we filter the nickname
 					SendSetNickName();
 					break;
+
 				case "notice":
+					// NOTICE <target> <message>
 					if ( SplitRequest.Length > 2 )
 					{
 						SendNotice(SplitRequest[1], ConcatFromIndexTillRestOfArray(SplitRequest, 2));
+						bCommandFound = true;
+					}
+					break;
+
+				case "topic":
+					// TOPIC <channel> [topic]
+					if ( SplitRequest.Length > 1 )
+					{
+						SendTopic(SplitRequest[1], ConcatFromIndexTillRestOfArray(SplitRequest, 2));
 						bCommandFound = true;
 					}
 					break;
