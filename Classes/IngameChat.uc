@@ -198,6 +198,13 @@ function NotifyUserLeftChannel(string Channel, string User);
 function NotifyUserEnteredChannel(string Channel, string User);
 
 /**
+ * Notifies when a user changed his nick name.
+ * @param string OldNick
+ * @param string NewNick
+ */
+function NotifyUserChangedNickname(string OldNick, string NewNick);
+
+/**
  * Notifies when a user was kicked from a channel.
  * @param string Channel
  * @param string User

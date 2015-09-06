@@ -223,6 +223,14 @@ function NotifyUserEnteredChannel(string Channel, string User)
 }
 
 /**
+ * Notifies when a user changed his nick name.
+ */
+function NotifyUserChangedNickname(string OldNick, string NewNick)
+{
+	`Log("IngameChat:" @ OldNick @ "is now known as" @ NewNick);
+}
+
+/**
  * Notifies when a user was kicked from a channel.
  */
 function NotifyUserKickedFromChannel(string Channel, string User, string Reason)

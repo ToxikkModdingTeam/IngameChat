@@ -616,6 +616,9 @@ state ConnectedWithChat
 				case "NOTICE":  // we received a notice (private channel messages sent by Q bot)
 					Chat.ReceiveNotice(ConcatFromIndexTillRestOfArray(SplitResponse, 3, true), ExtractAuthorNickName(SplitResponse[0]));
 					break;
+				case "NICK":    // an user changed his nick name
+					Chat.NotifyUserChangedNickname(ExtractAuthorNickName(SplitResponse[0]), ExtractAuthorNickName(SplitResponse[2]));
+					break;
 		 	}
 		} 
 		else 
@@ -728,7 +731,7 @@ state ConnectedWithChat
 		local string Author;
 		local array<string> SplitAuthor; 
 
-		// the author is in the format: Nickname!ident@host and there is a colon in front of it.
+		// the author is in the format: :Nickname!ident@host  beware of the colon in front of it.
 		ParseStringIntoArray(FullAuthor, SplitAuthor, "!", true);
 		Author = Mid(SplitAuthor[0], 1);
 
