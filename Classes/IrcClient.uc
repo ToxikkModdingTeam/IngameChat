@@ -576,10 +576,24 @@ state ConnectedWithChat
 		 			DelegateChannelTopic(SplitResponse);
 		 			break;
 		 		case "JOIN": // confirmation we joined a channel
-		 			Chat.NotifyJoinedChannel(SplitResponse[2]);
-					Channels.AddItem(SplitResponse[2]);
+					//FIX: although it doesn't seem specified in the RFC,
+					// this is not just a confirmation message - it is sent everytime someone joins a channel.
+					// Format is  :USER JOIN #CHANNEL
+
+					// Note: because of the NickSuffix mess I don't think NickName or GetNickName() always contain the actual nick.
+					// it needs to be reworked so we can reliably use it to detect if something is about us or not.
+
+					// for now we'll just check if we already got that channel, should be good enough!
+					if ( Channels.Find(SplitResponse[2]) == INDEX_NONE )
+					{
+						Chat.NotifyJoinedChannel(SplitResponse[2]);
+						Channels.AddItem(SplitResponse[2]);
+					}
+					else
+						Chat.NotifyUserEnteredChannel(SplitResponse[2], ExtractAuthorNickName(SplitResponse[0]));
 		 			break;
 		 		case "PART": // confirmation we left a channel
+					// Strangely, this is not the same as above. Seems this one is not sent when somebody else leaves.
 		 			Chat.NotifyLeftChannel(SplitResponse[2]);
 					Channels.RemoveItem(SplitResponse[2]);
 					break;
